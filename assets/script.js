@@ -22,6 +22,10 @@ function testFunction(){
     const cityNameEl = document.createElement("h2");
     cityNameEl.textContent = data.city.name
     document.body.appendChild(cityNameEl)
+   const weather1 = document.createElement("h2")
+   weather1.textContent = data.list[0].main.feels_like
+   document.body.appendChild(weather1)
+
   });
 }
 
