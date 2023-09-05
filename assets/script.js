@@ -1,6 +1,10 @@
 var cityInput = document.getElementById("weather-input");
 var startWeather = document.getElementById("start-weather")
-startWeather.addEventListener("click", testFunction)
+var mainWeather = document.querySelector(".main-weather")
+var fiveDay = document.querySelector(".card-body")
+var historyList = document.querySelector(".history-list")
+
+
 // var weather = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=eec895795d5d972c767275a1537c9915`;
 // fetch(weather)
 //   .then(function (response) {
@@ -10,8 +14,8 @@ startWeather.addEventListener("click", testFunction)
 //     console.log(data);
 //   });
   
-function testFunction(){
-    let cityName = cityInput.value
+function testFunction(cityName){
+    
     let weather = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=eec895795d5d972c767275a1537c9915&units=imperial`;
     fetch(weather)
   .then(function (response) {
@@ -19,41 +23,66 @@ function testFunction(){
   })
   .then(function (data) {
     console.log(data);
-    
-    const weatherTxt1 = document.createElement("h2")
-    const weatherTxt2 = document.createElement("h2")
-    const weatherTxt3 = document.createElement("h2")
-    const weatherTxt4 = document.createElement("h2")
-    const weatherTxt5 = document.createElement("h2")
-    const cityNameEl = document.createElement("h2")
-    cityNameEl.textContent = data.city.name
-    document.body.appendChild(cityNameEl)
-    const weather1 = document.createElement("h2")
-    const weather2 = document.createElement("h2")
-    const weather3 = document.createElement("h2")
-    const weather4 = document.createElement("h2")
-    const weather5 = document.createElement("h2")
-    weatherTxt1.textContent = "weather day 1"
-    weatherTxt2.textContent = "weather day 2"
-    weatherTxt3.textContent = "weather day 3"
-    weatherTxt4.textContent = "weather day 4"
-    weatherTxt5.textContent = "weather day 5"
-   weather1.textContent = data.list[0].main.temp
-   weather2.textContent = data.list[1].main.temp
-   weather3.textContent = data.list[2].main.temp
-   weather4.textContent = data.list[3].main.temp
-   weather5.textContent = data.list[4].main.temp
-   document.body.appendChild(weatherTxt1)
-   document.body.appendChild(weather1)
-   document.body.appendChild(weatherTxt2)
-   document.body.appendChild(weather2)
-   document.body.appendChild(weatherTxt3)
-   document.body.appendChild(weather3)
-   document.body.appendChild(weatherTxt4)
-   document.body.appendChild(weather4)
-   document.body.appendChild(weatherTxt5)
-   document.body.appendChild(weather5)
+    var icon = data.list[0].weather[0].icon
+    var iconEndpoint = `https://openweathermap.org/img/wn/${icon}.png`
+    var todayForcast = `
+    <div>
+    <h2>${data.city.name}</h2>
+    <img src="${iconEndpoint}">
+    <p>temp ${data.list[0].main.temp}</p>
+    <p>hummidity ${data.list[0].main.humidity}</p>
+    <p>wind speed ${data.list[0].wind.speed}</p>
+    </div>
+    `;
+    mainWeather.innerHTML = todayForcast;
+
+    var weeklyForcast = data.list.filter(day => day.dt_txt.includes("12:00:00"))
+    console.log(weeklyForcast)
+    var fiveDayCard = ""
+    for(var i=0; i<weeklyForcast.length; i++){
+      var icon = weeklyForcast[i].weather[0].icon
+      var iconEndpoint = `https://openweathermap.org/img/wn/${icon}.png`
+      fiveDayCard += `
+      <div class = "card"> 
+      <img src="${iconEndpoint}">
+      <p>temp ${weeklyForcast[i].main.temp}</p>
+      <p>hummidity ${weeklyForcast[i].main.humidity}</p>
+      <p>wind speed ${weeklyForcast[i].wind.speed}</p>
+      </div>      
+      `; 
+      fiveDay.innerHTML = fiveDayCard;
+    }
 
   });
 }
+var cityHistory = ()=>{
+  var history = cityInput.value.trim()
+  var pastCity = JSON.parse(localStorage.getItem("pastCity"))||[]
+  pastCity.push(history)
+  localStorage.setItem("pastCity", JSON.stringify(pastCity))
+  makeButtons(pastCity)
+}
 
+var makeButtons = (pastCity)=>{
+historyList.innerHTML = ""
+pastCity.forEach((city)=>{
+
+  var button = document.createElement("li")
+  button.textContent = city
+  button.className += "pastCityButton"
+  historyList.appendChild(button)
+  button.addEventListener("click", (event)=>{
+    event.preventDefault()
+    var pastCity = button.textContent
+    testFunction(pastCity)
+  })
+})
+  
+
+}
+startWeather.addEventListener("click", ()=>{
+  let cityName = cityInput.value
+  testFunction(cityName)
+  cityHistory()
+
+})
